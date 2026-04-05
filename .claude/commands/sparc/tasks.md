@@ -1,148 +1,51 @@
-# SPARC Tasks — User-Story-Organized Task Generation
-
-You are generating implementation tasks from a completed plan. Tasks are organized by user story — not by technical layer — so each story can be developed, tested, and deployed independently.
-
-## Prerequisites
-- Read `constitution.md` for rigor level and TDD requirements.
-- Read `specs/[feature]-spec.md` — user stories drive the task structure.
-- Read `specs/[feature]-plan.md` — architecture and technology decisions drive the task content.
-- If either file is missing, stop and tell the user which to create first.
-
+---
+name: sparc-tasks
+description: User-story-organized task generation — [USN] story tags, [P] parallel markers, TDD order enforced (failing test before implementation), independent testability verification per story
 ---
 
-## Task Organization Rules
+# SPARC Tasks
 
-1. **One task list section per user story.** Tasks for US-001 are complete before tasks for US-002 begin (unless marked `[P]`).
-2. **TDD order**: For every feature task, the failing test task MUST precede the implementation task. Never reverse this.
-3. **`[P]` marker** means this task can run in parallel with other `[P]` tasks in the same story.
-4. **`[USN]` tag** links each task to its user story for traceability.
-5. **Independent testability**: Before closing a story's tasks, verify the four criteria below.
+## Role
+Generate implementation tasks organized by user story, not technical layer. TDD order is enforced: failing test task always precedes implementation task.
 
----
+## Memory
+```javascript
+mcp__claude-flow__memory_retrieve { key: "governance-rigor", namespace: "governance" }
+mcp__claude-flow__memory_retrieve { key: "spec-[feature]-summary", namespace: "specs" }
+mcp__claude-flow__memory_retrieve { key: "plan-[feature]-summary", namespace: "decisions" }
+```
+
+Requires `specs/[feature]-spec.md` and `specs/[feature]-plan.md`. Stop if either missing.
 
 ## Task Format
-
-Each task follows this format:
-
 ```
-- [ ] [P] [US-001] TASK-NNN: [verb phrase describing the work]
-  - Acceptance: [how to verify this task is done]
+- [ ] [P] [US-001] TASK-NNN: [verb phrase]
+  - Acceptance: [how to verify done]
   - Depends on: [TASK-NNN or "none"]
-  - Notes: [ADR references, gotchas, or constraints]
+  - Notes: [ADR refs, constraints]
 ```
 
----
+`[P]` = can run parallel with other `[P]` tasks in same story. `[USN]` links to story.
 
-## Task Generation Process
+## Generation Process (per story, P1 → P2 → P3 order)
 
-For each user story in the spec (in P1 → P2 → P3 order):
+For each story:
+1. Story preamble with independent testability status
+2. Shared setup tasks (only if not already created by prior story)
+3. For each FR tied to this story: **test task first** (write failing test, confirm it fails for the right reason) then **implementation task** (minimum code to pass the test)
+4. Integration verification task (all acceptance scenarios pass end-to-end)
+5. Verify 4 independent testability criteria before next story. Flag and restructure if any fail.
 
-### Step 1 — Story preamble
-```
-## Story US-00N: [title from spec]
-Priority: P[1/2/3]
-Independent testability: [confirmed / at-risk — reason]
-```
+## Output File
+Write `specs/[feature]-tasks.md` with: total task count · parallel opportunity count · shared setup section · story sections · cross-cutting tasks (docs, changelog, ADR finalization) · Definition of Done checklist.
 
-### Step 2 — Setup tasks (shared infrastructure, run once before story tasks)
-Only generate these if they don't already exist from a prior story:
-- Environment/dependency setup
-- Database migrations or schema changes
-- Shared test fixtures or factories
-
-### Step 3 — For each functional requirement tied to this story:
-
-**Test task first (always):**
-```
-- [ ] [US-00N] TASK-NNN: Write failing tests for [requirement FR-NNN]
-  - Acceptance: Tests exist, describe the expected behavior, and currently fail
-  - Depends on: [setup task or "none"]
-  - Notes: Test file: tests/[path]. Cover: [list acceptance scenarios from spec]
+## Memory Store
+```javascript
+mcp__claude-flow__memory_store {
+  key: "tasks-[feature]-summary",
+  value: "task count, parallel opportunities, stories with testability concerns",
+  namespace: "specs"
+}
 ```
 
-**Implementation task second:**
-```
-- [ ] [US-00N] TASK-NNN: Implement [requirement FR-NNN]
-  - Acceptance: All tests written in prior task now pass. No new test failures.
-  - Depends on: TASK-NNN (test task)
-  - Notes: [ADR reference if relevant], [architectural notes from plan]
-```
-
-### Step 4 — Integration task (end of each story)
-```
-- [ ] [US-00N] TASK-NNN: Integration verification for Story US-00N
-  - Acceptance: All acceptance scenarios from spec pass end-to-end. Story meets all 4 independent testability criteria.
-  - Depends on: [all implementation tasks for this story]
-```
-
-### Step 5 — Independent testability check
-Before moving to the next story, verify:
-- [ ] Story US-00N can be deployed without Story US-00(N+1) being complete
-- [ ] Story US-00N delivers value to users independently
-- [ ] No hard runtime dependency on sibling stories
-- [ ] All acceptance scenarios pass in isolation
-
-If any criterion fails, flag it and propose a task restructuring.
-
----
-
-## Output Format
-
-Produce `specs/[feature]-tasks.md`:
-
-```markdown
-# Implementation Tasks: [Feature Name]
-**Spec:** specs/[feature]-spec.md
-**Plan:** specs/[feature]-plan.md
-**Generated:** [date]
-**Total tasks:** [N]
-**Estimated parallel opportunities:** [N tasks marked [P]]
-
----
-
-## Shared Setup
-- [ ] TASK-001: [setup task]
-  ...
-
----
-
-## Story US-001: [title]
-Priority: P1
-Independent testability: confirmed
-
-[tasks...]
-
----
-
-## Story US-002: [title]
-Priority: P1
-Independent testability: confirmed
-
-[tasks...]
-
----
-
-## Cross-Cutting Tasks
-[Tasks not tied to a specific story: docs update, changelog, ADR finalization, etc.]
-
----
-
-## Definition of Done
-- [ ] All tasks completed
-- [ ] All tests passing
-- [ ] Build succeeds
-- [ ] All ADRs finalized (no "Draft" status remaining)
-- [ ] All LOGs resolved or explicitly deferred with a new LOG entry
-- [ ] `constitution.md` still accurate (update if project context changed)
-```
-
----
-
-## After Tasks are Generated
-
-Tell the user:
-- Total task count and parallel opportunity count
-- Estimated effort (rough, based on task count and complexity signals from the plan)
-- Any stories with independent testability concerns
-- Any ADRs still in Draft status that need to be finalized before coding begins
-- Next step: run `/sparc-review` on the task list (FULL/STANDARD rigor) or `/sparc-implement` to begin
+Close: task count + parallel opportunities · any stories with independent testability concerns · ADRs still in Draft · next: `/sparc-review` (FULL/STANDARD) or `/sparc-implement`.
