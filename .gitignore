@@ -18,10 +18,3 @@ out/
 # Runtime
 *.log
 .DS_Store
-
-# Claude-Flow runtime state (daemon, HNSW index, memory DB, metrics)
-.claude-flow/
-.swarm/
-
-# Local Claude Code settings
-.claude/settings.local.json
