@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-agent-benchmark`
 **Created**: 2026-04-05
-**Status**: Complete — retro run 2026-04-05
+**Status**: Draft
 **Rigor**: STANDARD (assumed — no constitution.md exists; single maintainer, research context, no PII, low blast radius)
 
 ## Decision Records
@@ -206,12 +206,12 @@ dependency on US-001 or US-002 ✓ · All scenarios pass in isolation ✓
 
 | # | Assumption | Risk | Validation Method |
 |---|---|---|---|
-| A-01 | Claude-Root's fixture files (fixture/spec.md, fixture/tasks.md) are stable and have not been modified since the April 3 calibration runs | LOW — files are in a separate repo on a named branch | **VALIDATED** — used verbatim across all runs without issues |
-| A-02 | The Claude-Root STANDARD spec baseline (`2026-04-03-spec-STANDARD-run1.md`) contains a token count that can be used as comparison denominator | HIGH — confirmed: no token counts appear in any Claude-Root run file | **INVALIDATED (pre-caught)** — Phase 1 redesigned as routing-on vs. routing-off internal comparison before any tokens burned |
-| A-03 | RuFlo model routing can be observed — i.e., the model tier used for each agent call is accessible | RESOLVED — `hooks_model-route` returns model, confidence, complexity score, and alternatives per call; explicit call required before each Phase A agent invocation | **VALIDATED** — works as documented; explicit call pattern became foundation for ADR_008 |
-| A-04 | AgentDB stores and retrieves findings at a granularity that allows per-agent context injection at Phase A start | MEDIUM — retrieval may return full namespace dump rather than agent-specific prior findings | **VALIDATED** — per-agent keys in shared namespace work exactly as needed; ADR_005 resolved |
-| A-05 | WASM booster pre-screening can be invoked as a distinct step before Phase A LLM agents run, not just as an optimization inside agent execution | RESOLVED (false premise) — `wasm_agent_create` has a `model` param defaulting to Claude Sonnet; WASM agents still invoke Claude and provide filesystem sandboxing only | **INVALIDATED (pre-caught)** — Phase 3 redesigned before tokens burned; LOG_006 / ADR_006 |
-| A-06 | Rigor is STANDARD — two Phase A specialists (security-reviewer + systems-architect) plus devil's advocate; no constitution.md exists to confirm | LOW for this experiment — if constitution sets different rigor, panel composition changes | **PARTIALLY VALIDATED** — experiment ran successfully at STANDARD; LOG_002 open; constitution not run |
+| A-01 | Claude-Root's fixture files (fixture/spec.md, fixture/tasks.md) are stable and have not been modified since the April 3 calibration runs | LOW — files are in a separate repo on a named branch | Read fixture file hashes before Phase 1; compare to Claude-Root baseline run date |
+| A-02 | The Claude-Root STANDARD spec baseline (`2026-04-03-spec-STANDARD-run1.md`) contains a token count that can be used as comparison denominator | HIGH — confirmed: no token counts appear in any Claude-Root run file; the baseline comparison row in FR-010 cannot use a token figure from Claude-Root; Phase 1 must establish its own token baseline on first run | SC-001 must be revised: compare Phase 1 routing-on vs. routing-off within RuFlo; Claude-Root run serves as catch-rate baseline only, not token baseline |
+| A-03 | RuFlo model routing can be observed — i.e., the model tier used for each agent call is accessible | RESOLVED — `hooks_model-route` returns model, confidence, complexity score, and alternatives per call; benchmark command must call it explicitly before each Phase A agent invocation and log the result; `hooks_post-task` has no tier field so routing must be captured at call time |
+| A-04 | AgentDB stores and retrieves findings at a granularity that allows per-agent context injection at Phase A start | MEDIUM — retrieval may return full namespace dump rather than agent-specific prior findings | Test a store/retrieve cycle in the `benchmark/spec-fixture` namespace before Phase 2 |
+| A-05 | WASM booster pre-screening can be invoked as a distinct step before Phase A LLM agents run, not just as an optimization inside agent execution | RESOLVED (false premise) — `wasm_agent_create` has a `model` param defaulting to `claude-sonnet-4-20250514`; WASM agents still invoke Claude and provide filesystem sandboxing only, not zero-LLM execution. Phase 3 redesigned: routing accuracy test via `hooks_model-route` complexity scoring instead of WASM pre-pass. |
+| A-06 | Rigor is STANDARD — two Phase A specialists (security-reviewer + systems-architect) plus devil's advocate; no constitution.md exists to confirm | LOW for this experiment — if constitution sets different rigor, panel composition changes | Run `/sparc-constitution` before implementation; if rigor changes, update panel composition in plan |
 
 ---
 
