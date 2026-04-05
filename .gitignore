@@ -1,0 +1,20 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Setup flag — each new clone should run the full first-run check
+.claude/.setup-complete
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Runtime
+*.log
+.DS_Store
