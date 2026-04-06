@@ -214,10 +214,26 @@ npx @claude-flow/cli@latest memory retrieve --key "pattern-auth" --namespace pat
 ## Quick Setup
 
 ```bash
+# 1. Add the core RuFlo MCP (required)
 claude mcp add claude-flow -- npx -y @claude-flow/cli@latest
 npx @claude-flow/cli@latest daemon start
 npx @claude-flow/cli@latest doctor --fix
+
+# 2. Set environment variables for optional MCPs (in your shell profile or .env)
+# GitHub MCP — enables github:* commands (PR manager, code-review-swarm, issue-tracker)
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Postgres MCP — enables direct DB access during implementation (omit if using SQLite only)
+export DATABASE_URL=postgresql://user:password@localhost:5432/dbname
+
+# SQLite MCP — enabled by default at ./data/local.db (no env var needed)
 ```
+
+**MCP servers included in this template** (activate automatically when env vars are set):
+- `github` — GitHub API via `GITHUB_TOKEN`
+- `sequential-thinking` — structured reasoning (no credentials needed)
+- `postgres` — database access via `DATABASE_URL`
+- `sqlite` — local SQLite at `./data/local.db` (no credentials needed)
 
 ## Claude Code vs CLI Tools
 
